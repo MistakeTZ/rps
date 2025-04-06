@@ -22,6 +22,7 @@ async def command_start_handler(msg: Message, state: FSMContext) -> None:
     if nickname:
         if nickname[0]:
             await menu(user_id, nickname[0])
+            return
 
     else:
         print("New user:", user_id)

@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.markdown import hlink
 from loader import dp, bot, sender
 import asyncio
+import importlib
 from os import path
 
 from config import get_env, get_config
@@ -20,8 +21,11 @@ async def menu_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(UserState.default)
 
 
-# Начинается с
-@dp.callback_query(F.data.startswith("start_"))
-async def start_handler(clbck: CallbackQuery, state: FSMContext) -> None:
+# Выбор игры
+@dp.callback_query(F.data.startswith("game_"))
+async def game_handler(clbck: CallbackQuery, state: FSMContext) -> None:
     user_id = clbck.from_user.id
-    answer = clbck.data.split("_")[-1]
+    game = clbck.data.split("_")[-1]
+
+    game = importlib.import_module(f"games.{game}")
+    await game.start_game(user_id, state)

@@ -10,3 +10,4 @@ class UserState(StatesGroup):
     time = State()
     mailing = State()
     name = State()
+    rps = State()

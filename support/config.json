@@ -1,3 +1,8 @@
 {
-
+    "games": [
+        {
+            "id": "rps",
+            "name": "Rock Paper Scissors"
+        }
+    ]
 }
