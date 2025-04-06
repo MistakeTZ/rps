@@ -9,10 +9,34 @@ from datetime import datetime
 from os import path
 from config import get_env, get_config, time_difference
 import asyncio
+import unicodedata as ud
 
 import utils.kb as kb
 from states import UserState
 from database.model import DB
+from support.tasks import menu
+
+
+# Установка никнейма
+@dp.message(UserState.name, F.text)
+async def set_name(msg: Message, state: FSMContext):
+    user_id = msg.from_user.id
+    if len(msg.text) > 20 or len(msg.text) < 3:
+        await sender.message(user_id, "wrong_name")
+        return
+    for char in msg.text:
+        if not 'LATIN' in ud.name(char) and not char.isdigit() and char != "_":
+            await sender.message(user_id, "wrong_name")
+            return
+    count = DB.get("select count(*) from users where nickname = ?", [msg.text], True)
+    if count[0] > 0:
+        await sender.message(user_id, "nickname_exists", None, msg.text)
+        return
+
+    DB.commit("update users set nickname = ? where telegram_id = ?", [msg.text, user_id])
+    await sender.message(user_id, "nickname_set", None, msg.text)
+    await menu(user_id, msg.text)
+    await state.set_state(UserState.default)
 
 
 # Проверка на отсутствие состояний
@@ -25,7 +49,14 @@ class NoStates(Filter):
 # Сообщение без состояний
 @dp.message(NoStates())
 async def no_states_handler(msg: Message, state: FSMContext):
-    pass
+    user_id = msg.from_user.id
+    nickname = DB.get("select nickname from users where telegram_id = ?", [user_id], True)
+    if not nickname:
+        return
+    elif nickname[0]:
+        await menu(msg.from_user.id, nickname[0])
+    await sender.message(user_id, "hello")
+    await state.set_state(UserState.name)
 
 
 # Рассылка

@@ -34,6 +34,7 @@ class DB():
                             telegram_id bigint not null,
                             name varchar(50) not null,
                             username varchar(50),
+                            nickname varchar(20),
                             role varchar(15) not null default 'user',
                             registered timestamp
                             )""")
